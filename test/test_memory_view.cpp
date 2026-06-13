@@ -43,33 +43,34 @@ TEST(TestMemoryView, singleObjectAddressing)
 
 TEST(TestMemoryView, arrayAddressing)
 {
-    const size_t arraySize{ 4 };
+    const uint64_t arraySize{ 4 };
 
-    const size_t sizeInBytes = sizeof(size_t) + arraySize * sizeof(TestStruct);
+    constexpr uint64_t arraySizeOffset = sizeof(uint64_t) + ConstMemoryView::ARRAY_SIZE_PADDING;
+    const uint64_t sizeInBytes = arraySizeOffset + arraySize * sizeof(TestStruct);
 
     std::array<std::byte, sizeInBytes> buffer;
 
-    std::memcpy(buffer.data(), &arraySize, sizeof(size_t));
+    std::memcpy(buffer.data(), &arraySize, sizeof(uint64_t));
 
-    auto* inputObj_0    = reinterpret_cast<TestStruct*>(buffer.data() + sizeof(size_t));
+    auto* inputObj_0    = reinterpret_cast<TestStruct*>(buffer.data() + arraySizeOffset);
     inputObj_0->value_0 = 7;
     inputObj_0->value_1 = 14;
     inputObj_0->value_2 = 28;
     inputObj_0->value_3 = 56;
 
-    auto* inputObj_1    = reinterpret_cast<TestStruct*>(buffer.data() + sizeof(size_t) + sizeof(TestStruct));
+    auto* inputObj_1    = reinterpret_cast<TestStruct*>(buffer.data() + arraySizeOffset + sizeof(TestStruct));
     inputObj_1->value_0 = 8;
     inputObj_1->value_1 = 16;
     inputObj_1->value_2 = 32;
     inputObj_1->value_3 = 64;
 
-    auto* inputObj_2    = reinterpret_cast<TestStruct*>(buffer.data() + sizeof(size_t) + 2 * sizeof(TestStruct));
+    auto* inputObj_2    = reinterpret_cast<TestStruct*>(buffer.data() + arraySizeOffset + 2 * sizeof(TestStruct));
     inputObj_2->value_0 = 1;
     inputObj_2->value_1 = 2;
     inputObj_2->value_2 = 3;
     inputObj_2->value_3 = 4;
 
-    auto* inputObj_3    = reinterpret_cast<TestStruct*>(buffer.data() + sizeof(size_t) + 3 * sizeof(TestStruct));
+    auto* inputObj_3    = reinterpret_cast<TestStruct*>(buffer.data() + arraySizeOffset + 3 * sizeof(TestStruct));
     inputObj_3->value_0 = 9;
     inputObj_3->value_1 = 10;
     inputObj_3->value_2 = 11;

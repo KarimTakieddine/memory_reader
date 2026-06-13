@@ -14,13 +14,15 @@ class MemoryView
         "MemoryView template type must be std::byte or const std::byte");
 
 public:
+    static constexpr uint64_t ARRAY_SIZE_PADDING = sizeof(uint64_t);
+
     template<typename T>
     using ObjectType = std::conditional_t<std::is_const_v<MemoryType>, const T, T>;
 
     explicit MemoryView(std::span<MemoryType> bufferSpan) : m_bufferSpan(bufferSpan) { }
 
     template<typename T>
-    [[nodiscard]] inline std::span<ObjectType<T>, 1> read_object(size_t offset) const noexcept
+    [[nodiscard]] std::span<ObjectType<T>, 1> read_object(uint64_t offset) const noexcept
     {
         assert(offset + sizeof(T) <= m_bufferSpan.size());
         assert(reinterpret_cast<uintptr_t>(m_bufferSpan.data() + offset) % alignof(T) == 0);
@@ -31,20 +33,21 @@ public:
     }
 
     template<typename T>
-    [[nodiscard]] inline std::span<ObjectType<T>> read_contiguous_array(size_t offset) const noexcept
+    [[nodiscard]] std::span<ObjectType<T>> read_contiguous_array(uint64_t offset) const noexcept
     {
-        assert(offset + sizeof(size_t) <= m_bufferSpan.size());
+        assert(offset + sizeof(uint64_t) <= m_bufferSpan.size());
 
         auto* rawBytes = m_bufferSpan.data() + offset;
 
-        size_t count{ 0 };
-        std::memcpy(&count, rawBytes, sizeof(size_t));
+        uint64_t count{ 0 };
+        std::memcpy(&count, rawBytes, sizeof(uint64_t));
 
-        auto* arrayBytes = rawBytes + sizeof(size_t);
-        assert(offset + sizeof(size_t) + (count * sizeof(T)) <= m_bufferSpan.size());
+        auto* arrayBytes = rawBytes + sizeof(uint64_t) + ARRAY_SIZE_PADDING;
+
+        assert(offset + sizeof(uint64_t) + ARRAY_SIZE_PADDING + (count * sizeof(T)) <= m_bufferSpan.size());
         assert(reinterpret_cast<uintptr_t>(arrayBytes) % alignof(T) == 0);
 
-        return std::span<ObjectType<T>>(reinterpret_cast<ObjectType<T>*>(rawBytes + sizeof(size_t)), count);
+        return std::span<ObjectType<T>>(reinterpret_cast<ObjectType<T>*>(arrayBytes), count);
     }
 
 private:
