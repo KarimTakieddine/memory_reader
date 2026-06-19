@@ -2,13 +2,17 @@
 
 #include <cstddef>
 
-template<size_t A>
+#include "padding.h"
+
+template<uint64_t A>
 class MemoryCursor
 {
+    static_assert(std::has_single_bit(A), "Alignment must be a power of 2"); // FYI works for 1
+
 public:
     MemoryCursor() : m_offset(0) { }
 
-    explicit MemoryCursor(size_t offset) : m_offset(offset) { }
+    explicit MemoryCursor(uint64_t offset) : m_offset(offset) { }
 
     void reset() noexcept
     {
@@ -18,26 +22,25 @@ public:
     template<typename T>
     void step() noexcept
     {
-        static_assert(sizeof(T) % A == 0, "step() size in bytes must be a multiple of the MemoryCursor alignment");
-
+        m_offset += padding::getPaddingBytes(A, m_offset);
         m_offset += sizeof(T);
+        m_offset += padding::getPaddingBytes(A, m_offset);
     }
 
     template<typename T>
     void step_array(size_t count) noexcept
     {
-        const size_t sizeInBytes = count * sizeof(T);
-
-        static_assert(sizeof(T) % A == 0, "step_array() size in bytes must be a multiple of the MemoryCursor alignment");
-
-        m_offset += sizeof(size_t) + sizeInBytes;
+        m_offset += sizeof(uint64_t);
+        m_offset += padding::getPaddingBytes(A, m_offset);
+        m_offset += count * sizeof(T);
+        m_offset += padding::getPaddingBytes(A, m_offset);
     }
 
-    [[nodiscard]] size_t getOffset() const noexcept
+    [[nodiscard]] uint64_t getOffset() const noexcept
     {
         return m_offset;
     }
 
 private:
-    size_t m_offset;
+    uint64_t m_offset;
 };

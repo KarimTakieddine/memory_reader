@@ -6,7 +6,9 @@ set(PROJECT_NAME memory_reader)
 set(TEST_DIR test)
 
 list(APPEND SOURCES
-    ${TEST_DIR}/test_memory_view.cpp)
+    ${TEST_DIR}/test_memory_cursor.cpp
+    ${TEST_DIR}/test_memory_view.cpp
+    ${TEST_DIR}/test_padding.cpp)
 
 project(${PROJECT_NAME})
 
