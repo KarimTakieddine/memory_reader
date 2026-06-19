@@ -63,7 +63,8 @@ namespace airful_engine
             if (!unalignedStart) return;
 
             const uintptr_t rawStart        = reinterpret_cast<uintptr_t>(unalignedStart) + headerSize;
-            const uintptr_t alignedStart    = (rawStart + A - 1) & ~(A - 1);
+            const uint64_t alignmentPadding = padding::getPaddingBytes(A, rawStart);
+            const uintptr_t alignedStart    = rawStart + alignmentPadding;
 
             auto** pHeader  = reinterpret_cast<void**>(alignedStart) - 1;
             *pHeader        = unalignedStart;
