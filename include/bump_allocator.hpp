@@ -96,20 +96,34 @@ public:
         return result;
     }
 
-    void freeMemory(size_t sizeInBytes)
+    template<typename T, typename... Args>
+    [[nodiscard]] T* requestMemoryArray(size_t count, Args&&... args)
     {
-        auto* unalignedEnd = TO_BYTE_PTR(m_position) - sizeInBytes;
-        
-        if (unalignedEnd <= m_buffer)
-        {
-            m_position = m_buffer;
-            return;
-        }
+        if (count == 0) [[unlikely]]
+            return nullptr;
 
-        const uintptr_t endAddr     = reinterpret_cast<uintptr_t>(unalignedEnd);
+        auto* const alignedPosition = TO_BYTE_PTR(m_position);
+
+        const size_t sizeInBytes    = sizeof(T) * count;
+        const uintptr_t endAddr     = reinterpret_cast<uintptr_t>(alignedPosition + sizeInBytes);
+
         const uint64_t tailPadding  = padding::getPaddingBytes(A, endAddr);
 
-        m_position = unalignedEnd - tailPadding;
+        auto* const nextPosition    = alignedPosition + sizeInBytes + tailPadding;
+
+        if (nextPosition > m_bounds)
+            return nullptr;
+
+        T* const resultArray = reinterpret_cast<T*>(alignedPosition);
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            new (&resultArray[i]) T(std::forward<Args>(args)...);
+        }
+
+        m_position = nextPosition;
+
+        return resultArray;
     }
 
     void release()
