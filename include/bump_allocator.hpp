@@ -75,7 +75,7 @@ public:
     }
 
     template<typename T, typename... Args>
-    [[nodiscard]] T* requestMemory(Args&&... args)
+    T* requestMemory(Args&&... args)
     {
         auto* const alignedPosition = TO_BYTE_PTR(m_position);
         
@@ -97,7 +97,7 @@ public:
     }
 
     template<typename T, typename... Args>
-    [[nodiscard]] T* requestMemoryArray(size_t count, Args&&... args)
+    T* requestMemoryArray(size_t count, Args&&... args)
     {
         if (count == 0) [[unlikely]]
             return nullptr;
