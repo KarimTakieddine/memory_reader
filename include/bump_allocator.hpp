@@ -126,6 +126,20 @@ public:
         return resultArray;
     }
 
+    void free(size_t sizeInBytes)
+    {
+        auto* nextPosition = TO_BYTE_PTR(m_position);
+
+        nextPosition -= sizeInBytes;
+
+        if (nextPosition < m_buffer)
+        {
+            nextPosition = m_buffer;
+        }
+
+        m_position = nextPosition;
+    }
+
     void release()
     {
         if (!m_buffer)
