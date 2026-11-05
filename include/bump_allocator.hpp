@@ -134,7 +134,7 @@ public:
 
         if (nextPosition < m_buffer)
         {
-            nextPosition = m_buffer;
+            nextPosition = TO_BYTE_PTR(m_buffer);
         }
 
         m_position = nextPosition;
